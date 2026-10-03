@@ -29,18 +29,17 @@ function Products() {
         const categoriesResponse =
           await api.get("categories/")
 
-        const productsData =
+        setProducts(
           Array.isArray(productsResponse.data)
             ? productsResponse.data
             : []
+        )
 
-        const categoriesData =
+        setCategories(
           Array.isArray(categoriesResponse.data)
             ? categoriesResponse.data
             : []
-
-        setProducts(productsData)
-        setCategories(categoriesData)
+        )
 
       } catch (err) {
         console.error(
@@ -62,26 +61,17 @@ function Products() {
 
 
   function handleCategoryChange(event) {
-    const value = event.target.value
-
-    console.log(
-      "Selected category:",
-      value
+    setSelectedCategory(
+      event.target.value
     )
-
-    setSelectedCategory(value)
   }
 
 
-  let filteredProducts = products.filter(
-    (product) => {
-      const searchText =
-        search.trim().toLowerCase()
+  function matchesProduct(product) {
+    const searchValue =
+      search.trim().toLowerCase()
 
-      if (!searchText) {
-        return true
-      }
-
+    if (searchValue) {
       const name =
         String(product.name || "")
           .toLowerCase()
@@ -90,31 +80,38 @@ function Products() {
         String(product.description || "")
           .toLowerCase()
 
-      return (
-        name.includes(searchText) ||
-        description.includes(searchText)
-      )
+      if (
+        !name.includes(searchValue) &&
+        !description.includes(searchValue)
+      ) {
+        return false
+      }
     }
-  )
 
 
-  if (selectedCategory) {
-    filteredProducts =
-      filteredProducts.filter(
-        (product) =>
-          String(product.category || "") ===
-          String(selectedCategory)
-      )
+    if (selectedCategory) {
+      if (
+        String(product.category || "") !==
+        String(selectedCategory)
+      ) {
+        return false
+      }
+    }
+
+
+    return true
   }
 
 
-  filteredProducts = [
-    ...filteredProducts,
-  ]
+  let visibleProducts = products.filter(
+    matchesProduct
+  )
 
 
   if (sort === "price-low") {
-    filteredProducts.sort(
+    visibleProducts = [
+      ...visibleProducts,
+    ].sort(
       (a, b) =>
         Number(a.price || 0) -
         Number(b.price || 0)
@@ -123,7 +120,9 @@ function Products() {
 
 
   if (sort === "price-high") {
-    filteredProducts.sort(
+    visibleProducts = [
+      ...visibleProducts,
+    ].sort(
       (a, b) =>
         Number(b.price || 0) -
         Number(a.price || 0)
@@ -132,7 +131,9 @@ function Products() {
 
 
   if (sort === "name") {
-    filteredProducts.sort(
+    visibleProducts = [
+      ...visibleProducts,
+    ].sort(
       (a, b) =>
         String(a.name || "").localeCompare(
           String(b.name || "")
@@ -142,12 +143,22 @@ function Products() {
 
 
   if (sort === "newest") {
-    filteredProducts.sort(
+    visibleProducts = [
+      ...visibleProducts,
+    ].sort(
       (a, b) =>
         new Date(b.created_at || 0) -
         new Date(a.created_at || 0)
     )
   }
+
+
+  const visibleProductIds =
+    new Set(
+      visibleProducts.map(
+        (product) => product.id
+      )
+    )
 
 
   if (loading) {
@@ -166,22 +177,28 @@ function Products() {
       <div className="products-header">
 
         <div>
-          <h2>Products</h2>
+
+          <h2>
+            Products
+          </h2>
 
           <p className="results-count">
-            {filteredProducts.length}{" "}
+            {visibleProducts.length}{" "}
             product
-            {filteredProducts.length !== 1
+            {visibleProducts.length !== 1
               ? "s"
               : ""}
           </p>
+
         </div>
 
 
         <Link to="/add-product">
+
           <button type="button">
             Add Product
           </button>
+
         </Link>
 
       </div>
@@ -203,7 +220,9 @@ function Products() {
             placeholder="Search products..."
             value={search}
             onChange={(event) =>
-              setSearch(event.target.value)
+              setSearch(
+                event.target.value
+              )
             }
           />
 
@@ -221,14 +240,17 @@ function Products() {
               All Categories
             </option>
 
-            {categories.map((item) => (
-              <option
-                key={item.id}
-                value={item.id}
-              >
-                {item.name}
-              </option>
-            ))}
+
+            {categories.map(
+              (item) => (
+                <option
+                  key={item.id}
+                  value={item.id}
+                >
+                  {item.name}
+                </option>
+              )
+            )}
 
           </select>
 
@@ -240,7 +262,9 @@ function Products() {
           <select
             value={sort}
             onChange={(event) =>
-              setSort(event.target.value)
+              setSort(
+                event.target.value
+              )
             }
           >
 
@@ -267,36 +291,57 @@ function Products() {
       </div>
 
 
-      {filteredProducts.length === 0 ? (
+      <div className="product-grid">
 
-        <div className="empty-state">
+        {products.map(
+          (product) => {
 
-          <h3>
-            No products found
-          </h3>
+            const isVisible =
+              visibleProductIds.has(
+                product.id
+              )
 
-          <p>
-            Try another search or category.
-          </p>
-
-        </div>
-
-      ) : (
-
-        <div className="product-grid">
-
-          {filteredProducts.map(
-            (product) => (
-              <ProductCard
+            return (
+              <div
                 key={product.id}
-                product={product}
-              />
+                style={{
+                  display: isVisible
+                    ? "block"
+                    : "none",
+                }}
+              >
+
+                <ProductCard
+                  product={product}
+                />
+
+              </div>
             )
-          )}
+          }
+        )}
 
-        </div>
+      </div>
 
-      )}
+
+      <div
+        className="empty-state"
+        style={{
+          display:
+            visibleProducts.length === 0
+              ? "block"
+              : "none",
+        }}
+      >
+
+        <h3>
+          No products found
+        </h3>
+
+        <p>
+          Try another search or category.
+        </p>
+
+      </div>
 
     </div>
   )
