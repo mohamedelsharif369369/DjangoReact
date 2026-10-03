@@ -18,13 +18,14 @@ import MyOrders from "./pages/MyOrders"
 import ProtectedRoute from "./components/ProtectedRoute"
 import CartIcon from "./components/CartIcon"
 
+import "./App.css"
+
 
 function App() {
   const navigate = useNavigate()
 
   const token = localStorage.getItem("access")
   const username = localStorage.getItem("username")
-
 
   function handleLogout() {
     localStorage.removeItem("access")
@@ -38,94 +39,46 @@ function App() {
     navigate("/login")
   }
 
-
   return (
-    <div>
+    <div className="app">
 
-      <header
-        style={{
-          backgroundColor: "#ffffff",
-          borderBottom: "1px solid #e5e7eb",
-          padding: "15px 20px",
-          marginBottom: "25px",
-          boxShadow:
-            "0 2px 8px rgba(0, 0, 0, 0.05)",
-        }}
-      >
-
-        <div
-          style={{
-            maxWidth: "1100px",
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "15px",
-            flexWrap: "wrap",
-          }}
-        >
+      <header className="site-header">
+        <div className="header-container">
 
           <Link
             to="/"
-            style={{
-              textDecoration: "none",
-              fontSize: "24px",
-              fontWeight: "bold",
-              color: "#222",
-            }}
+            className="brand"
           >
-            React Django Shop
+            ISKNDR
           </Link>
 
-
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              flexWrap: "wrap",
-            }}
-          >
+          <nav className="main-nav">
 
             <Link
               to="/"
-              style={{
-                textDecoration: "none",
-              }}
+              className="nav-link"
             >
               <button type="button">
                 Products
               </button>
             </Link>
 
-
             {token ? (
               <>
-                <span
-                  style={{
-                    fontSize: "15px",
-                    color: "#555",
-                  }}
-                >
+                <span className="welcome">
                   Welcome,{" "}
-                  <strong>
-                    {username}
-                  </strong>{" "}
+                  <strong>{username}</strong>{" "}
                   👋
                 </span>
 
-
                 <Link
                   to="/my-orders"
-                  style={{
-                    textDecoration: "none",
-                  }}
+                  className="nav-link"
                 >
                   <button type="button">
                     My Orders
                   </button>
                 </Link>
-
 
                 <button
                   type="button"
@@ -138,21 +91,16 @@ function App() {
               <>
                 <Link
                   to="/login"
-                  style={{
-                    textDecoration: "none",
-                  }}
+                  className="nav-link"
                 >
                   <button type="button">
                     Login
                   </button>
                 </Link>
 
-
                 <Link
                   to="/register"
-                  style={{
-                    textDecoration: "none",
-                  }}
+                  className="nav-link"
                 >
                   <button type="button">
                     Register
@@ -161,23 +109,15 @@ function App() {
               </>
             )}
 
-
             <CartIcon />
 
           </nav>
 
         </div>
-
       </header>
 
 
-      <main
-        style={{
-          maxWidth: "1100px",
-          margin: "0 auto",
-          padding: "0 20px 40px",
-        }}
-      >
+      <main className="main-content">
 
         <Routes>
 
@@ -186,24 +126,20 @@ function App() {
             element={<Products />}
           />
 
-
           <Route
             path="/products/:id"
             element={<ProductDetails />}
           />
-
 
           <Route
             path="/cart"
             element={<Cart />}
           />
 
-
           <Route
             path="/checkout"
             element={<Checkout />}
           />
-
 
           <Route
             path="/my-orders"
@@ -214,7 +150,6 @@ function App() {
             }
           />
 
-
           <Route
             path="/add-product"
             element={
@@ -223,7 +158,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
 
           <Route
             path="/products/:id/edit"
@@ -234,12 +168,10 @@ function App() {
             }
           />
 
-
           <Route
             path="/login"
             element={<Login />}
           />
-
 
           <Route
             path="/register"
@@ -250,9 +182,76 @@ function App() {
 
       </main>
 
+
+      <footer className="site-footer">
+
+        <div className="footer-container">
+
+          <div className="footer-brand">
+            <h2>ISKNDR</h2>
+
+            <p>
+              Modern e-commerce platform
+              built with React and Django.
+            </p>
+          </div>
+
+
+          <div className="footer-developer">
+
+            <h3>
+              Full-Stack Web Developer
+            </h3>
+
+            <p>
+              Mohamed Elsharif
+            </p>
+
+            <p className="footer-tech">
+              React.js • Python • Django •
+              Django REST Framework •
+              PostgreSQL
+            </p>
+
+          </div>
+
+
+          <div className="footer-links">
+
+            <h3>
+              Project
+            </h3>
+
+            <a
+              href="https://github.com/mohamedelsharif369369/DjangoReact"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div className="footer-bottom">
+
+          <p>
+            © {new Date().getFullYear()} ISKNDR.
+            All rights reserved.
+          </p>
+
+          <p>
+            Developed by Mohamed Elsharif
+          </p>
+
+        </div>
+
+      </footer>
+
     </div>
   )
 }
-
 
 export default App

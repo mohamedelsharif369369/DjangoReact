@@ -1,6 +1,27 @@
 from rest_framework import serializers
 
-from .models import Order, OrderItem, Product
+from .models import (
+    Category,
+    Order,
+    OrderItem,
+    Product,
+)
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "created_at",
+        ]
+
+        read_only_fields = [
+            "id",
+            "created_at",
+        ]
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -12,6 +33,10 @@ class ProductSerializer(serializers.ModelSerializer):
         source="owner.id"
     )
 
+    category_name = serializers.ReadOnlyField(
+        source="category.name"
+    )
+
     image = serializers.ImageField(
         required=False,
         allow_null=True,
@@ -19,6 +44,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
+
         fields = "__all__"
 
 
@@ -29,6 +55,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
+
         fields = [
             "id",
             "product",

@@ -1,6 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
+
 import api from "../services/api"
+
 
 function AddProduct() {
   const navigate = useNavigate()
@@ -11,7 +13,35 @@ function AddProduct() {
   const [stock, setStock] = useState("")
   const [image, setImage] = useState(null)
 
+  const [categories, setCategories] = useState([])
+  const [category, setCategory] = useState("")
+
   const [error, setError] = useState("")
+  const [categoriesLoading, setCategoriesLoading] =
+    useState(true)
+
+
+  useEffect(() => {
+    api
+      .get("categories/")
+      .then((response) => {
+        setCategories(response.data)
+      })
+      .catch((error) => {
+        console.error(
+          "Error fetching categories:",
+          error
+        )
+
+        setError(
+          "Could not load product categories."
+        )
+      })
+      .finally(() => {
+        setCategoriesLoading(false)
+      })
+  }, [])
+
 
   function handleSubmit(event) {
     event.preventDefault()
@@ -21,13 +51,24 @@ function AddProduct() {
     const formData = new FormData()
 
     formData.append("name", name)
-    formData.append("description", description)
+    formData.append(
+      "description",
+      description
+    )
     formData.append("price", price)
     formData.append("stock", stock)
+
+    if (category) {
+      formData.append(
+        "category",
+        category
+      )
+    }
 
     if (image) {
       formData.append("image", image)
     }
+
 
     api
       .post("products/", formData)
@@ -46,9 +87,18 @@ function AddProduct() {
         )
 
         if (error.response) {
-          setError(
-            `Error ${error.response.status}: ${error.response.statusText}`
-          )
+          if (
+            error.response.data
+              ?.category
+          ) {
+            setError(
+              `Category: ${error.response.data.category}`
+            )
+          } else {
+            setError(
+              `Error ${error.response.status}: ${error.response.statusText}`
+            )
+          }
         } else {
           setError(
             "Cannot connect to Django API"
@@ -57,77 +107,159 @@ function AddProduct() {
       })
   }
 
+
   return (
     <div className="product-card">
+
       <h2>Add Product</h2>
 
-      {error && <p>{error}</p>}
+
+      {error && (
+        <p className="error-message">
+          {error}
+        </p>
+      )}
+
 
       <form onSubmit={handleSubmit}>
+
         <div>
-          <label>Name</label>
+          <label>
+            Name
+          </label>
+
           <br />
 
           <input
             type="text"
             value={name}
             onChange={(event) =>
-              setName(event.target.value)
+              setName(
+                event.target.value
+              )
             }
             required
           />
         </div>
 
+
         <br />
 
+
         <div>
-          <label>Description</label>
+          <label>
+            Description
+          </label>
+
           <br />
 
           <textarea
             value={description}
             onChange={(event) =>
-              setDescription(event.target.value)
+              setDescription(
+                event.target.value
+              )
             }
           />
         </div>
 
+
         <br />
 
+
         <div>
-          <label>Price</label>
+          <label>
+            Category
+          </label>
+
+          <br />
+
+          <select
+            value={category}
+            onChange={(event) =>
+              setCategory(
+                event.target.value
+              )
+            }
+            disabled={categoriesLoading}
+          >
+            <option value="">
+              {categoriesLoading
+                ? "Loading categories..."
+                : "Select a category"}
+            </option>
+
+            {categories.map(
+              (item) => (
+                <option
+                  key={item.id}
+                  value={item.id}
+                >
+                  {item.name}
+                </option>
+              )
+            )}
+          </select>
+        </div>
+
+
+        <br />
+
+
+        <div>
+          <label>
+            Price
+          </label>
+
           <br />
 
           <input
             type="number"
+            step="0.01"
+            min="0"
             value={price}
             onChange={(event) =>
-              setPrice(event.target.value)
+              setPrice(
+                event.target.value
+              )
             }
             required
           />
         </div>
 
+
         <br />
 
+
         <div>
-          <label>Stock</label>
+          <label>
+            Stock
+          </label>
+
           <br />
 
           <input
             type="number"
+            min="0"
             value={stock}
             onChange={(event) =>
-              setStock(event.target.value)
+              setStock(
+                event.target.value
+              )
             }
             required
           />
         </div>
 
+
         <br />
 
+
         <div>
-          <label>Product Image</label>
+          <label>
+            Product Image
+          </label>
+
           <br />
 
           <input
@@ -137,27 +269,36 @@ function AddProduct() {
               const selectedFile =
                 event.target.files[0]
 
-              setImage(selectedFile || null)
+              setImage(
+                selectedFile || null
+              )
             }}
           />
         </div>
 
+
         <br />
+
 
         <button type="submit">
           Add Product
         </button>
+
       </form>
 
+
       <br />
+
 
       <Link to="/">
         <button type="button">
           Back to Products
         </button>
       </Link>
+
     </div>
   )
 }
+
 
 export default AddProduct

@@ -7,9 +7,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Order, OrderItem, Product
+from .models import (
+    Category,
+    Order,
+    OrderItem,
+    Product,
+)
 from .permissions import IsOwnerOrAdmin
 from .serializers import (
+    CategorySerializer,
     OrderSerializer,
     ProductSerializer,
     RegisterSerializer,
@@ -19,7 +25,28 @@ from .serializers import (
 logger = logging.getLogger(__name__)
 
 
-class ProductListCreateView(generics.ListCreateAPIView):
+class CategoryListCreateView(
+    generics.ListCreateAPIView
+):
+    queryset = Category.objects.all().order_by("name")
+    serializer_class = CategorySerializer
+
+    def get_authenticators(self):
+        if self.request.method == "GET":
+            return []
+
+        return super().get_authenticators()
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return []
+
+        return [IsAuthenticated()]
+
+
+class ProductListCreateView(
+    generics.ListCreateAPIView
+):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
@@ -83,7 +110,9 @@ class RegisterView(APIView):
 
             return Response(
                 {
-                    "message": "Account created successfully",
+                    "message": (
+                        "Account created successfully"
+                    ),
                     "user": {
                         "id": user.id,
                         "username": user.username,
@@ -164,6 +193,7 @@ class OrderCreateView(APIView):
             address=address,
             notes=notes,
             total=Decimal("0.00"),
+            payment_status="unpaid",
         )
 
         total = Decimal("0.00")
@@ -235,7 +265,8 @@ class OrderCreateView(APIView):
                 return Response(
                     {
                         "error":
-                        f"Not enough stock for {product.name}. "
+                        f"Not enough stock for "
+                        f"{product.name}. "
                         f"Available: {product.stock}"
                     },
                     status=400,
@@ -252,12 +283,6 @@ class OrderCreateView(APIView):
                 product=product,
                 quantity=quantity,
                 price=item_price,
-            )
-
-            product.stock -= quantity
-
-            product.save(
-                update_fields=["stock"]
             )
 
             total += item_total

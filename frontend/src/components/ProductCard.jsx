@@ -1,59 +1,88 @@
 import { Link } from "react-router-dom"
 
+
 function ProductCard({ product }) {
-  const imageUrl = product.image || null
+  const imageUrl =
+    product.image || null
+
+
+  const stock = Number(
+    product.stock || 0
+  )
+
 
   return (
     <div className="product-card">
-      {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={product.name}
-          style={{
-            width: "100%",
-            height: "200px",
-            objectFit: "cover",
-            borderRadius: "12px",
-            marginBottom: "15px",
-          }}
-        />
-      ) : (
-        <div
-          style={{
-            width: "100%",
-            height: "200px",
-            borderRadius: "12px",
-            backgroundColor: "#e9ecef",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: "15px",
-            fontSize: "60px",
-          }}
-        >
-          📦
+
+      <div className="product-image-container">
+
+        {imageUrl ? (
+          <img
+            className="product-image"
+            src={imageUrl}
+            alt={product.name}
+          />
+        ) : (
+          <div className="product-placeholder">
+            📦
+          </div>
+        )}
+
+      </div>
+
+
+      <div className="product-card-content">
+
+        <h3>
+          {product.name}
+        </h3>
+
+
+        <p className="product-description">
+          {product.description ||
+            "No description available."}
+        </p>
+
+
+        <div className="product-info">
+
+          <span className="product-price">
+            {Number(product.price).toFixed(2)} LYD
+          </span>
+
+
+          <span
+            className={
+              stock > 0
+                ? "product-stock"
+                : "product-stock out-of-stock"
+            }
+          >
+            {stock > 0
+              ? `Stock: ${stock}`
+              : "Out of stock"}
+          </span>
+
         </div>
-      )}
 
-      <h3>{product.name}</h3>
 
-      <p>{product.description}</p>
+        <Link
+          to={`/products/${product.id}`}
+          className="product-details-link"
+        >
+          <button
+            type="button"
+            className="view-product-button"
+          >
+            View Details
+          </button>
+        </Link>
 
-      <p className="product-price">
-        {product.price} LYD
-      </p>
+      </div>
 
-      <p className="product-stock">
-        Stock: {product.stock}
-      </p>
-
-      <Link to={`/products/${product.id}`}>
-        <button type="button">
-          View Details
-        </button>
-      </Link>
     </div>
   )
 }
+
 
 export default ProductCard
