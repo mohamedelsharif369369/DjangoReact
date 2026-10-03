@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+import cloudinary
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -140,11 +141,35 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Cloudinary
 # ---------------------------------------------------------
 
+CLOUDINARY_CLOUD_NAME = os.getenv(
+    "CLOUDINARY_CLOUD_NAME",
+    "",
+).strip()
+
+CLOUDINARY_API_KEY = os.getenv(
+    "CLOUDINARY_API_KEY",
+    "",
+).strip()
+
+CLOUDINARY_API_SECRET = os.getenv(
+    "CLOUDINARY_API_SECRET",
+    "",
+).strip()
+
+
 CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
-    "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
-    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+    "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
+    "API_KEY": CLOUDINARY_API_KEY,
+    "API_SECRET": CLOUDINARY_API_SECRET,
 }
+
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_CLOUD_NAME,
+    api_key=CLOUDINARY_API_KEY,
+    api_secret=CLOUDINARY_API_SECRET,
+    secure=True,
+)
 
 
 STORAGES = {
