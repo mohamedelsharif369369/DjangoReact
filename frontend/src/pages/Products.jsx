@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 
 import api from "../services/api"
@@ -10,7 +10,7 @@ function Products() {
   const [categories, setCategories] = useState([])
 
   const [search, setSearch] = useState("")
-  const [category, setCategory] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("")
   const [sort, setSort] = useState("newest")
 
   const [loading, setLoading] = useState(true)
@@ -18,154 +18,143 @@ function Products() {
 
 
   useEffect(() => {
-    Promise.all([
-      api.get("products/"),
-      api.get("categories/"),
-    ])
-      .then(
-        ([
-          productsResponse,
-          categoriesResponse,
-        ]) => {
-          setProducts(
-            Array.isArray(
-              productsResponse.data
-            )
-              ? productsResponse.data
-              : []
-          )
+    async function loadData() {
+      try {
+        setLoading(true)
+        setError("")
 
-          setCategories(
-            Array.isArray(
-              categoriesResponse.data
-            )
-              ? categoriesResponse.data
-              : []
-          )
-        }
-      )
-      .catch((error) => {
+        const productsResponse =
+          await api.get("products/")
+
+        const categoriesResponse =
+          await api.get("categories/")
+
+        const productsData =
+          Array.isArray(productsResponse.data)
+            ? productsResponse.data
+            : []
+
+        const categoriesData =
+          Array.isArray(categoriesResponse.data)
+            ? categoriesResponse.data
+            : []
+
+        setProducts(productsData)
+        setCategories(categoriesData)
+
+      } catch (err) {
         console.error(
-          "Error fetching products or categories:",
-          error
+          "Products page error:",
+          err
         )
 
         setError(
           "Could not load products or categories."
         )
-      })
-      .finally(() => {
+
+      } finally {
         setLoading(false)
-      })
+      }
+    }
+
+    loadData()
   }, [])
 
 
-  const filteredProducts = useMemo(() => {
-    let result = [...products]
+  function handleCategoryChange(event) {
+    const value = event.target.value
+
+    console.log(
+      "Selected category:",
+      value
+    )
+
+    setSelectedCategory(value)
+  }
 
 
-    const searchValue =
-      search.trim().toLowerCase()
+  let filteredProducts = products.filter(
+    (product) => {
+      const searchText =
+        search.trim().toLowerCase()
 
+      if (!searchText) {
+        return true
+      }
 
-    if (searchValue) {
-      result = result.filter(
-        (product) => {
-          const name =
-            String(
-              product.name || ""
-            ).toLowerCase()
+      const name =
+        String(product.name || "")
+          .toLowerCase()
 
-          const description =
-            String(
-              product.description || ""
-            ).toLowerCase()
+      const description =
+        String(product.description || "")
+          .toLowerCase()
 
-          return (
-            name.includes(
-              searchValue
-            ) ||
-            description.includes(
-              searchValue
-            )
-          )
-        }
+      return (
+        name.includes(searchText) ||
+        description.includes(searchText)
       )
     }
+  )
 
 
-    if (category) {
-      result = result.filter(
+  if (selectedCategory) {
+    filteredProducts =
+      filteredProducts.filter(
         (product) =>
-          String(
-            product.category ?? ""
-          ) === String(category)
+          String(product.category || "") ===
+          String(selectedCategory)
       )
-    }
+  }
 
 
-    if (sort === "price-low") {
-      result.sort(
-        (a, b) =>
-          Number(a.price) -
-          Number(b.price)
-      )
-    }
+  filteredProducts = [
+    ...filteredProducts,
+  ]
 
 
-    if (sort === "price-high") {
-      result.sort(
-        (a, b) =>
-          Number(b.price) -
-          Number(a.price)
-      )
-    }
+  if (sort === "price-low") {
+    filteredProducts.sort(
+      (a, b) =>
+        Number(a.price || 0) -
+        Number(b.price || 0)
+    )
+  }
 
 
-    if (sort === "name") {
-      result.sort(
-        (a, b) =>
-          String(
-            a.name || ""
-          ).localeCompare(
-            String(
-              b.name || ""
-            )
-          )
-      )
-    }
+  if (sort === "price-high") {
+    filteredProducts.sort(
+      (a, b) =>
+        Number(b.price || 0) -
+        Number(a.price || 0)
+    )
+  }
 
 
-    if (sort === "newest") {
-      result.sort(
-        (a, b) =>
-          new Date(
-            b.created_at
-          ) -
-          new Date(
-            a.created_at
-          )
-      )
-    }
+  if (sort === "name") {
+    filteredProducts.sort(
+      (a, b) =>
+        String(a.name || "").localeCompare(
+          String(b.name || "")
+        )
+    )
+  }
 
 
-    return result
-  }, [
-    products,
-    search,
-    category,
-    sort,
-  ])
+  if (sort === "newest") {
+    filteredProducts.sort(
+      (a, b) =>
+        new Date(b.created_at || 0) -
+        new Date(a.created_at || 0)
+    )
+  }
 
 
   if (loading) {
     return (
       <div>
         <h2>Products</h2>
-
-        <p>
-          Loading products...
-        </p>
+        <p>Loading products...</p>
       </div>
     )
   }
@@ -182,8 +171,7 @@ function Products() {
           <p className="results-count">
             {filteredProducts.length}{" "}
             product
-            {filteredProducts.length !==
-            1
+            {filteredProducts.length !== 1
               ? "s"
               : ""}
           </p>
@@ -191,7 +179,7 @@ function Products() {
 
 
         <Link to="/add-product">
-          <button>
+          <button type="button">
             Add Product
           </button>
         </Link>
@@ -215,9 +203,7 @@ function Products() {
             placeholder="Search products..."
             value={search}
             onChange={(event) =>
-              setSearch(
-                event.target.value
-              )
+              setSearch(event.target.value)
             }
           />
 
@@ -227,30 +213,22 @@ function Products() {
         <div className="category-box">
 
           <select
-            value={category}
-            onChange={(event) => {
-              const value =
-                event.target.value
-
-              setCategory(value)
-            }}
+            value={selectedCategory}
+            onChange={handleCategoryChange}
           >
 
             <option value="">
               All Categories
             </option>
 
-
-            {categories.map(
-              (item) => (
-                <option
-                  key={item.id}
-                  value={item.id}
-                >
-                  {item.name}
-                </option>
-              )
-            )}
+            {categories.map((item) => (
+              <option
+                key={item.id}
+                value={item.id}
+              >
+                {item.name}
+              </option>
+            ))}
 
           </select>
 
@@ -262,9 +240,7 @@ function Products() {
           <select
             value={sort}
             onChange={(event) =>
-              setSort(
-                event.target.value
-              )
+              setSort(event.target.value)
             }
           >
 
