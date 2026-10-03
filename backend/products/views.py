@@ -1,4 +1,5 @@
 from decimal import Decimal
+import logging
 
 from django.db import transaction
 from rest_framework import generics
@@ -13,6 +14,9 @@ from .serializers import (
     ProductSerializer,
     RegisterSerializer,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class ProductListCreateView(generics.ListCreateAPIView):
@@ -32,9 +36,15 @@ class ProductListCreateView(generics.ListCreateAPIView):
         return [IsAuthenticated()]
 
     def perform_create(self, serializer):
-        serializer.save(
-            owner=self.request.user
-        )
+        try:
+            serializer.save(
+                owner=self.request.user
+            )
+        except Exception:
+            logger.exception(
+                "ERROR while creating product"
+            )
+            raise
 
 
 class ProductDetailView(
