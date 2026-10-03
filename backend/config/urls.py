@@ -1,6 +1,4 @@
 from django.contrib import admin
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import include, path
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -8,39 +6,42 @@ from rest_framework_simplejwt.views import (
 )
 
 from django.http import JsonResponse
-import os
+
+from cloudinary.utils import api_sign_request
+
+from django.conf import settings
 
 
-def cloudinary_debug(request):
-    return JsonResponse({
-        "cloudinary_cloud_name_exists": bool(
-            os.getenv("CLOUDINARY_CLOUD_NAME")
-        ),
-        "cloudinary_api_key_exists": bool(
-            os.getenv("CLOUDINARY_API_KEY")
-        ),
-        "cloudinary_api_secret_exists": bool(
-            os.getenv("CLOUDINARY_API_SECRET")
-        ),
-        "cloudinary_url_exists": bool(
-            os.getenv("CLOUDINARY_URL")
-        ),
-        "settings_cloud_name_exists": bool(
-            getattr(settings, "CLOUDINARY_STORAGE", {}).get(
-                "CLOUD_NAME"
-            )
-        ),
-        "settings_api_key_exists": bool(
-            getattr(settings, "CLOUDINARY_STORAGE", {}).get(
-                "API_KEY"
-            )
-        ),
-        "settings_api_secret_exists": bool(
-            getattr(settings, "CLOUDINARY_STORAGE", {}).get(
-                "API_SECRET"
-            )
-        ),
-    })
+def cloudinary_test(request):
+    try:
+        params = {
+            "folder": "media/products",
+            "tags": "media",
+            "timestamp": 1791036437,
+            "use_filename": 1,
+        }
+
+        signature = api_sign_request(
+            params,
+            settings.CLOUDINARY_API_SECRET,
+        )
+
+        return JsonResponse({
+            "success": True,
+            "cloud_name": settings.CLOUDINARY_CLOUD_NAME,
+            "api_key_last_4": settings.CLOUDINARY_API_KEY[-4:],
+            "secret_length": len(
+                settings.CLOUDINARY_API_SECRET
+            ),
+            "generated_signature": signature,
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error_type": type(e).__name__,
+            "error": str(e),
+        }, status=500)
 
 
 urlpatterns = [
@@ -64,15 +65,8 @@ urlpatterns = [
     ),
 
     path(
-        "api/cloudinary-debug/",
-        cloudinary_debug,
-        name="cloudinary_debug",
+        "api/cloudinary-test/",
+        cloudinary_test,
+        name="cloudinary_test",
     ),
 ]
-
-
-if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT,
-    )
