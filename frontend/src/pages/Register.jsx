@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
-import axios from "axios"
 import api from "../services/api"
 
 function Register() {
@@ -39,15 +38,17 @@ function Register() {
 
     api
       .post("register/", registerData)
+
       .then(() => {
-        return axios.post(
-          "http://127.0.0.1:8000/api/token/",
+        return api.post(
+          "token/",
           {
             username: username,
             password: password,
           }
         )
       })
+
       .then((response) => {
         localStorage.setItem(
           "access",
@@ -76,6 +77,7 @@ function Register() {
           navigate("/")
         }, 500)
       })
+
       .catch((error) => {
         console.error(
           "Register/Login error:",
@@ -113,6 +115,7 @@ function Register() {
           )
         }
       })
+
       .finally(() => {
         setLoading(false)
       })
