@@ -22,10 +22,28 @@ function Products() {
       api.get("products/"),
       api.get("categories/"),
     ])
-      .then(([productsResponse, categoriesResponse]) => {
-        setProducts(productsResponse.data)
-        setCategories(categoriesResponse.data)
-      })
+      .then(
+        ([
+          productsResponse,
+          categoriesResponse,
+        ]) => {
+          setProducts(
+            Array.isArray(
+              productsResponse.data
+            )
+              ? productsResponse.data
+              : []
+          )
+
+          setCategories(
+            Array.isArray(
+              categoriesResponse.data
+            )
+              ? categoriesResponse.data
+              : []
+          )
+        }
+      )
       .catch((error) => {
         console.error(
           "Error fetching products or categories:",
@@ -45,30 +63,43 @@ function Products() {
   const filteredProducts = useMemo(() => {
     let result = [...products]
 
+
     const searchValue =
       search.trim().toLowerCase()
 
+
     if (searchValue) {
-      result = result.filter((product) => {
-        const name =
-          product.name?.toLowerCase() || ""
+      result = result.filter(
+        (product) => {
+          const name =
+            String(
+              product.name || ""
+            ).toLowerCase()
 
-        const description =
-          product.description?.toLowerCase() || ""
+          const description =
+            String(
+              product.description || ""
+            ).toLowerCase()
 
-        return (
-          name.includes(searchValue) ||
-          description.includes(searchValue)
-        )
-      })
+          return (
+            name.includes(
+              searchValue
+            ) ||
+            description.includes(
+              searchValue
+            )
+          )
+        }
+      )
     }
 
 
     if (category) {
       result = result.filter(
         (product) =>
-          String(product.category) ===
-          String(category)
+          String(
+            product.category ?? ""
+          ) === String(category)
       )
     }
 
@@ -81,6 +112,7 @@ function Products() {
       )
     }
 
+
     if (sort === "price-high") {
       result.sort(
         (a, b) =>
@@ -89,19 +121,33 @@ function Products() {
       )
     }
 
+
     if (sort === "name") {
-      result.sort((a, b) =>
-        a.name.localeCompare(b.name)
+      result.sort(
+        (a, b) =>
+          String(
+            a.name || ""
+          ).localeCompare(
+            String(
+              b.name || ""
+            )
+          )
       )
     }
+
 
     if (sort === "newest") {
       result.sort(
         (a, b) =>
-          new Date(b.created_at) -
-          new Date(a.created_at)
+          new Date(
+            b.created_at
+          ) -
+          new Date(
+            a.created_at
+          )
       )
     }
+
 
     return result
   }, [
@@ -136,7 +182,8 @@ function Products() {
           <p className="results-count">
             {filteredProducts.length}{" "}
             product
-            {filteredProducts.length !== 1
+            {filteredProducts.length !==
+            1
               ? "s"
               : ""}
           </p>
@@ -181,15 +228,18 @@ function Products() {
 
           <select
             value={category}
-            onChange={(event) =>
-              setCategory(
+            onChange={(event) => {
+              const value =
                 event.target.value
-              )
-            }
+
+              setCategory(value)
+            }}
           >
+
             <option value="">
               All Categories
             </option>
+
 
             {categories.map(
               (item) => (
@@ -217,6 +267,7 @@ function Products() {
               )
             }
           >
+
             <option value="newest">
               Newest
             </option>
@@ -232,6 +283,7 @@ function Products() {
             <option value="name">
               Name: A-Z
             </option>
+
           </select>
 
         </div>
