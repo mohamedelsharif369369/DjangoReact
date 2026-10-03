@@ -17,6 +17,7 @@ import MyOrders from "./pages/MyOrders"
 
 import ProtectedRoute from "./components/ProtectedRoute"
 import CartIcon from "./components/CartIcon"
+import ErrorBoundary from "./components/ErrorBoundary"
 
 import "./App.css"
 
@@ -26,6 +27,7 @@ function App() {
 
   const token = localStorage.getItem("access")
   const username = localStorage.getItem("username")
+
 
   function handleLogout() {
     localStorage.removeItem("access")
@@ -39,10 +41,12 @@ function App() {
     navigate("/login")
   }
 
+
   return (
     <div className="app">
 
       <header className="site-header">
+
         <div className="header-container">
 
           <Link
@@ -51,6 +55,7 @@ function App() {
           >
             ISKNDR
           </Link>
+
 
           <nav className="main-nav">
 
@@ -63,6 +68,7 @@ function App() {
               </button>
             </Link>
 
+
             {token ? (
               <>
                 <span className="welcome">
@@ -70,6 +76,7 @@ function App() {
                   <strong>{username}</strong>{" "}
                   👋
                 </span>
+
 
                 <Link
                   to="/my-orders"
@@ -79,6 +86,7 @@ function App() {
                     My Orders
                   </button>
                 </Link>
+
 
                 <button
                   type="button"
@@ -98,6 +106,7 @@ function App() {
                   </button>
                 </Link>
 
+
                 <Link
                   to="/register"
                   className="nav-link"
@@ -109,76 +118,90 @@ function App() {
               </>
             )}
 
+
             <CartIcon />
 
           </nav>
 
         </div>
+
       </header>
 
 
       <main className="main-content">
 
-        <Routes>
+        <ErrorBoundary>
 
-          <Route
-            path="/"
-            element={<Products />}
-          />
+          <Routes>
 
-          <Route
-            path="/products/:id"
-            element={<ProductDetails />}
-          />
+            <Route
+              path="/"
+              element={<Products />}
+            />
 
-          <Route
-            path="/cart"
-            element={<Cart />}
-          />
 
-          <Route
-            path="/checkout"
-            element={<Checkout />}
-          />
+            <Route
+              path="/products/:id"
+              element={<ProductDetails />}
+            />
 
-          <Route
-            path="/my-orders"
-            element={
-              <ProtectedRoute>
-                <MyOrders />
-              </ProtectedRoute>
-            }
-          />
 
-          <Route
-            path="/add-product"
-            element={
-              <ProtectedRoute>
-                <AddProduct />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/cart"
+              element={<Cart />}
+            />
 
-          <Route
-            path="/products/:id/edit"
-            element={
-              <ProtectedRoute>
-                <EditProduct />
-              </ProtectedRoute>
-            }
-          />
 
-          <Route
-            path="/login"
-            element={<Login />}
-          />
+            <Route
+              path="/checkout"
+              element={<Checkout />}
+            />
 
-          <Route
-            path="/register"
-            element={<Register />}
-          />
 
-        </Routes>
+            <Route
+              path="/my-orders"
+              element={
+                <ProtectedRoute>
+                  <MyOrders />
+                </ProtectedRoute>
+              }
+            />
+
+
+            <Route
+              path="/add-product"
+              element={
+                <ProtectedRoute>
+                  <AddProduct />
+                </ProtectedRoute>
+              }
+            />
+
+
+            <Route
+              path="/products/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <EditProduct />
+                </ProtectedRoute>
+              }
+            />
+
+
+            <Route
+              path="/login"
+              element={<Login />}
+            />
+
+
+            <Route
+              path="/register"
+              element={<Register />}
+            />
+
+          </Routes>
+
+        </ErrorBoundary>
 
       </main>
 
@@ -188,12 +211,14 @@ function App() {
         <div className="footer-container">
 
           <div className="footer-brand">
+
             <h2>ISKNDR</h2>
 
             <p>
               Modern e-commerce platform
               built with React and Django.
             </p>
+
           </div>
 
 
@@ -253,5 +278,6 @@ function App() {
     </div>
   )
 }
+
 
 export default App
