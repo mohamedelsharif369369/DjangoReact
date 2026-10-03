@@ -39,6 +39,10 @@ INSTALLED_APPS = [
 
     "rest_framework",
     "corsheaders",
+
+    "cloudinary_storage",
+    "cloudinary",
+
     "products",
 ]
 
@@ -52,7 +56,6 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
 
     "corsheaders.middleware.CorsMiddleware",
-
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
 
@@ -94,7 +97,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 # =========================
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-
 
 if DATABASE_URL:
     DATABASES = {
@@ -163,12 +165,30 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 # =========================
-# Media files
+# Media files - Cloudinary
 # =========================
 
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+# Cloudinary credentials are provided
+# through the CLOUDINARY_URL environment variable.
+#
+# Example:
+# CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+#
+# DO NOT put the API Secret directly in this file.
+
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 
 # =========================
@@ -207,3 +227,4 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
 }
+
