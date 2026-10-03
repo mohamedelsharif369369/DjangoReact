@@ -1,22 +1,20 @@
 import os
-
 from pathlib import Path
+
 import dj_database_url
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# =========================
-# Security
-# =========================
-
 SECRET_KEY = os.getenv(
     "DJANGO_SECRET_KEY",
     "django-insecure-development-only-key",
 )
 
+
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -24,10 +22,6 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
-
-# =========================
-# Applications
-# =========================
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -47,31 +41,20 @@ INSTALLED_APPS = [
 ]
 
 
-# =========================
-# Middleware
-# =========================
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 
 ROOT_URLCONF = "config.urls"
 
-
-# =========================
-# Templates
-# =========================
 
 TEMPLATES = [
     {
@@ -92,10 +75,6 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 
-# =========================
-# Database
-# =========================
-
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if DATABASE_URL:
@@ -115,10 +94,6 @@ else:
         }
     }
 
-
-# =========================
-# Password validation
-# =========================
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -142,10 +117,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# =========================
-# Internationalization
-# =========================
-
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
@@ -155,31 +126,26 @@ USE_I18N = True
 USE_TZ = True
 
 
-# =========================
-# Static files
-# =========================
-
 STATIC_URL = "/static/"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-
-# =========================
-# Media files - Cloudinary
-# =========================
 
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
 
 
-# Cloudinary credentials are provided
-# through the CLOUDINARY_URL environment variable.
-#
-# Example:
-# CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
-#
-# DO NOT put the API Secret directly in this file.
+# ---------------------------------------------------------
+# Cloudinary
+# ---------------------------------------------------------
+
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
+    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+}
+
 
 STORAGES = {
     "default": {
@@ -191,25 +157,13 @@ STORAGES = {
 }
 
 
-# =========================
-# Default primary key
-# =========================
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
-# =========================
-# Email
-# =========================
 
 EMAIL_BACKEND = (
     "django.core.mail.backends.console.EmailBackend"
 )
 
-
-# =========================
-# CORS
-# =========================
 
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
@@ -218,13 +172,8 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 
-# =========================
-# Django REST Framework
-# =========================
-
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
 }
-
