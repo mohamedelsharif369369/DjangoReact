@@ -7,96 +7,122 @@ import ProductCard from "../components/ProductCard"
 
 function Products() {
   const [products, setProducts] = useState([])
-  const [error, setError] = useState("")
+  const [categories, setCategories] = useState([])
 
   const [search, setSearch] = useState("")
+  const [category, setCategory] = useState("")
   const [sort, setSort] = useState("newest")
 
-  const token = localStorage.getItem("access")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
 
   useEffect(() => {
-    api
-      .get("products/")
-      .then((response) => {
-        setProducts(response.data)
+    Promise.all([
+      api.get("products/"),
+      api.get("categories/"),
+    ])
+      .then(([productsResponse, categoriesResponse]) => {
+        setProducts(productsResponse.data)
+        setCategories(categoriesResponse.data)
       })
       .catch((error) => {
         console.error(
-          "Error fetching products:",
+          "Error fetching products or categories:",
           error
         )
 
-        if (error.response) {
-          setError(
-            `Error ${error.response.status}: ${error.response.statusText}`
-          )
-        } else {
-          setError(
-            "Cannot connect to Django API"
-          )
-        }
+        setError(
+          "Could not load products or categories."
+        )
+      })
+      .finally(() => {
+        setLoading(false)
       })
   }, [])
 
 
   const filteredProducts = useMemo(() => {
-    const searchText = search
-      .trim()
-      .toLowerCase()
+    let result = [...products]
 
-    let result = products.filter((product) => {
-      if (!searchText) {
-        return true
-      }
+    const searchValue =
+      search.trim().toLowerCase()
 
-      const name =
-        product.name?.toLowerCase() || ""
+    if (searchValue) {
+      result = result.filter((product) => {
+        const name =
+          product.name?.toLowerCase() || ""
 
-      const description =
-        product.description?.toLowerCase() || ""
-
-      return (
-        name.includes(searchText) ||
-        description.includes(searchText)
-      )
-    })
-
-
-    result = [...result].sort(
-      (a, b) => {
-        if (sort === "price-low") {
-          return (
-            Number(a.price) -
-            Number(b.price)
-          )
-        }
-
-        if (sort === "price-high") {
-          return (
-            Number(b.price) -
-            Number(a.price)
-          )
-        }
-
-        if (sort === "name") {
-          return (
-            (a.name || "").localeCompare(
-              b.name || ""
-            )
-          )
-        }
+        const description =
+          product.description?.toLowerCase() || ""
 
         return (
+          name.includes(searchValue) ||
+          description.includes(searchValue)
+        )
+      })
+    }
+
+
+    if (category) {
+      result = result.filter(
+        (product) =>
+          String(product.category) ===
+          String(category)
+      )
+    }
+
+
+    if (sort === "price-low") {
+      result.sort(
+        (a, b) =>
+          Number(a.price) -
+          Number(b.price)
+      )
+    }
+
+    if (sort === "price-high") {
+      result.sort(
+        (a, b) =>
+          Number(b.price) -
+          Number(a.price)
+      )
+    }
+
+    if (sort === "name") {
+      result.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      )
+    }
+
+    if (sort === "newest") {
+      result.sort(
+        (a, b) =>
           new Date(b.created_at) -
           new Date(a.created_at)
-        )
-      }
-    )
-
+      )
+    }
 
     return result
-  }, [products, search, sort])
+  }, [
+    products,
+    search,
+    category,
+    sort,
+  ])
+
+
+  if (loading) {
+    return (
+      <div>
+        <h2>Products</h2>
+
+        <p>
+          Loading products...
+        </p>
+      </div>
+    )
+  }
 
 
   return (
@@ -105,55 +131,90 @@ function Products() {
       <div className="products-header">
 
         <div>
-          <h2>ISKNDR Products</h2>
+          <h2>Products</h2>
 
-          <p className="products-subtitle">
-            Discover our products
+          <p className="results-count">
+            {filteredProducts.length}{" "}
+            product
+            {filteredProducts.length !== 1
+              ? "s"
+              : ""}
           </p>
         </div>
 
-        {token && (
-          <Link to="/add-product">
-            <button type="button">
-              + Add Product
-            </button>
-          </Link>
-        )}
+
+        <Link to="/add-product">
+          <button>
+            Add Product
+          </button>
+        </Link>
 
       </div>
+
+
+      {error && (
+        <p className="error-message">
+          {error}
+        </p>
+      )}
 
 
       <div className="products-controls">
 
         <div className="search-box">
 
-          <span className="search-icon">
-            🔎
-          </span>
-
           <input
             type="search"
             placeholder="Search products..."
             value={search}
             onChange={(event) =>
-              setSearch(event.target.value)
+              setSearch(
+                event.target.value
+              )
             }
           />
 
         </div>
 
 
-        <div className="sort-box">
-
-          <label htmlFor="sort">
-            Sort by
-          </label>
+        <div className="category-box">
 
           <select
-            id="sort"
+            value={category}
+            onChange={(event) =>
+              setCategory(
+                event.target.value
+              )
+            }
+          >
+            <option value="">
+              All Categories
+            </option>
+
+            {categories.map(
+              (item) => (
+                <option
+                  key={item.id}
+                  value={item.id}
+                >
+                  {item.name}
+                </option>
+              )
+            )}
+
+          </select>
+
+        </div>
+
+
+        <div className="sort-box">
+
+          <select
             value={sort}
             onChange={(event) =>
-              setSort(event.target.value)
+              setSort(
+                event.target.value
+              )
             }
           >
             <option value="newest">
@@ -169,7 +230,7 @@ function Products() {
             </option>
 
             <option value="name">
-              Name: A to Z
+              Name: A-Z
             </option>
           </select>
 
@@ -178,26 +239,23 @@ function Products() {
       </div>
 
 
-      {error && (
-        <div className="error-message">
-          {error}
+      {filteredProducts.length === 0 ? (
+
+        <div className="empty-state">
+
+          <h3>
+            No products found
+          </h3>
+
+          <p>
+            Try another search or category.
+          </p>
+
         </div>
-      )}
 
+      ) : (
 
-      {!error && (
-        <p className="results-count">
-          {filteredProducts.length}{" "}
-          {filteredProducts.length === 1
-            ? "product"
-            : "products"}{" "}
-          found
-        </p>
-      )}
-
-
-      {filteredProducts.length > 0 ? (
-        <div className="products-grid">
+        <div className="product-grid">
 
           {filteredProducts.map(
             (product) => (
@@ -209,24 +267,7 @@ function Products() {
           )}
 
         </div>
-      ) : (
-        !error && (
-          <div className="empty-products">
 
-            <div className="empty-icon">
-              🔍
-            </div>
-
-            <h3>
-              No products found
-            </h3>
-
-            <p>
-              Try another search term.
-            </p>
-
-          </div>
-        )
       )}
 
     </div>
