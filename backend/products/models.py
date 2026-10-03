@@ -10,30 +10,20 @@ class Product(models.Model):
         blank=True,
         related_name="products",
     )
-
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-
     image = models.ImageField(
         upload_to="products/",
         null=True,
         blank=True,
     )
-
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
     )
-
     stock = models.PositiveIntegerField(default=0)
-
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True
-    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -47,25 +37,27 @@ class Order(models.Model):
         ("cancelled", "Cancelled"),
     ]
 
+    PAYMENT_STATUS_CHOICES = [
+        ("unpaid", "Unpaid"),
+        ("pending", "Pending"),
+        ("paid", "Paid"),
+        ("failed", "Failed"),
+    ]
+
+    PAYMENT_METHOD_CHOICES = [
+        ("paypal", "PayPal"),
+        ("bank", "Bank Transfer"),
+    ]
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="orders",
     )
-
-    customer_name = models.CharField(
-        max_length=200
-    )
-
-    phone = models.CharField(
-        max_length=50
-    )
-
+    customer_name = models.CharField(max_length=200)
+    phone = models.CharField(max_length=50)
     address = models.TextField()
-
-    notes = models.TextField(
-        blank=True
-    )
+    notes = models.TextField(blank=True)
 
     total = models.DecimalField(
         max_digits=12,
@@ -79,15 +71,40 @@ class Order(models.Model):
         default="pending",
     )
 
-    created_at = models.DateTimeField(
-        auto_now_add=True
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHOD_CHOICES,
+        blank=True,
+        default="",
     )
 
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default="unpaid",
+    )
+
+    paypal_order_id = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    paypal_capture_id = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    paid_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
-        return (
-            f"Order #{self.id} - "
-            f"{self.customer_name}"
-        )
+        return f"Order #{self.id} - {self.customer_name}"
 
 
 class OrderItem(models.Model):
@@ -96,22 +113,16 @@ class OrderItem(models.Model):
         on_delete=models.CASCADE,
         related_name="items",
     )
-
     product = models.ForeignKey(
         Product,
         on_delete=models.PROTECT,
         related_name="order_items",
     )
-
     quantity = models.PositiveIntegerField()
-
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
     )
 
     def __str__(self):
-        return (
-            f"{self.product.name} x "
-            f"{self.quantity}"
-        )
+        return f"{self.product.name} x {self.quantity}"
